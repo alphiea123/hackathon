@@ -288,49 +288,6 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`
   }
   
   return parsed;
-
-  const prompt = `You are an expert meeting summarizer. Analyze the following meeting transcript and create:
-
-1. A concise summary (2-3 paragraphs) that captures the main points, decisions, and action items.
-
-2. A structured slide presentation with 5-8 slides. Each slide should have:
-   - A clear, descriptive title
-   - 3-5 bullet points with key information
-
-Format your response as JSON with this exact structure:
-{
-  "summary": "Your concise summary here...",
-  "slides": [
-    {
-      "title": "Slide Title",
-      "points": ["Point 1", "Point 2", "Point 3"]
-    }
-  ]
-}
-
-Meeting Transcript:
-${transcript}
-
-Respond ONLY with valid JSON, no additional text or markdown formatting.`;
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
-  
-  let jsonText = text.trim();
-  if (jsonText.startsWith('```json')) {
-    jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  } else if (jsonText.startsWith('```')) {
-    jsonText = jsonText.replace(/```\n?/g, '');
-  }
-  
-  const parsed = JSON.parse(jsonText);
-  
-  if (!parsed.summary || !parsed.slides || !Array.isArray(parsed.slides)) {
-    throw new Error('Invalid response format from Gemini');
-  }
-  
-  return parsed;
 }
 
 // Transcribe with Hugging Face

@@ -222,7 +222,7 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`;
 // Generate with Google Gemini
 async function generateWithGoogle(transcript, apiKey) {
   const apiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,
     {
       method: 'POST',
       headers: {

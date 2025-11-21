@@ -161,7 +161,7 @@ ${transcript}
 
 Respond ONLY with valid JSON, no additional text or markdown formatting.`;
 
-  const response = await fetch(
+  const hfResponse = await fetch(
     `https://api-inference.huggingface.co/models/${model}`,
     {
       method: 'POST',
@@ -180,12 +180,12 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`;
     }
   );
 
-  if (!response.ok) {
-    const errorText = await response.text();
+  if (!hfResponse.ok) {
+    const errorText = await hfResponse.text();
     throw new Error(`Hugging Face API error: ${errorText}`);
   }
 
-  const data = await response.json();
+  const data = await hfResponse.json();
   
   let text = '';
   if (Array.isArray(data) && data[0] && data[0].generated_text) {
@@ -222,7 +222,7 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`;
 // Generate with Google Gemini
 async function generateWithGoogle(transcript, apiKey) {
   // Use fetch to call Gemini API directly (Cloudflare-compatible)
-  const response = await fetch(
+  const apiResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
     {
       method: 'POST',
@@ -261,12 +261,12 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`
     }
   );
 
-  if (!response.ok) {
-    const error = await response.text();
+  if (!apiResponse.ok) {
+    const error = await apiResponse.text();
     throw new Error(`Gemini API error: ${error}`);
   }
 
-  const data = await response.json();
+  const data = await apiResponse.json();
   
   if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
     throw new Error('Invalid response from Gemini API');
@@ -294,7 +294,7 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`
 async function transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, modelOverride) {
   const model = modelOverride || 'openai/whisper-large-v2';
   
-  const response = await fetch(
+  const transcribeResponse = await fetch(
     `https://api-inference.huggingface.co/models/${model}`,
     {
       method: 'POST',
@@ -305,17 +305,17 @@ async function transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, mod
     }
   );
 
-  if (!response.ok) {
-    if (response.status === 503) {
-      const retryAfter = response.headers.get('retry-after') || 10;
+  if (!transcribeResponse.ok) {
+    if (transcribeResponse.status === 503) {
+      const retryAfter = transcribeResponse.headers.get('retry-after') || 10;
       await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
       return transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, modelOverride);
     }
-    const errorText = await response.text();
+    const errorText = await transcribeResponse.text();
     throw new Error(`Hugging Face API error: ${errorText}`);
   }
 
-  const data = await response.json();
+  const data = await transcribeResponse.json();
   
   if (typeof data === 'string') {
     return data;
@@ -329,4 +329,3 @@ async function transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, mod
     throw new Error('Unexpected response format from Hugging Face: ' + JSON.stringify(data));
   }
 }
-

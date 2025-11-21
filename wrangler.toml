@@ -1,0 +1,12 @@
+# Cloudflare Pages configuration
+# This file is optional but helps with local development
+
+name = "meeting-summarizer"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "meeting-summarizer"
+
+# Note: Environment variables should be set in Cloudflare Dashboard
+# Go to: Pages > Your Project > Settings > Environment Variables
+

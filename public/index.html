@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Summarizer with Slides</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Meeting Summarizer</h1>
+            <p class="subtitle">Transform your meetings into polished slides with AI</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="transcript">📝 Transcript</button>
+                    <button class="tab-btn" data-tab="audio">🎤 Audio File</button>
+                </div>
+
+                <!-- Transcript Input -->
+                <div class="tab-content active" id="transcript-tab">
+                    <div class="input-group">
+                        <label for="transcript-input">Paste or type your meeting transcript:</label>
+                        <textarea 
+                            id="transcript-input" 
+                            placeholder="Enter your meeting transcript here...&#10;&#10;Example:&#10;John: Welcome everyone to today's meeting. We'll be discussing Q4 goals...&#10;Sarah: I think we should focus on increasing user engagement...&#10;Mike: That's a great point. We could also look at improving our conversion rate..."
+                            rows="10"
+                        ></textarea>
+                        <button class="submit-btn" id="submit-transcript">
+                            <span>Generate Summary & Slides</span>
+                            <svg class="spinner hidden" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Audio Input -->
+                <div class="tab-content" id="audio-tab">
+                    <div class="input-group">
+                        <label for="audio-input">Upload audio file (MP3, WAV, M4A):</label>
+                        <div class="file-upload-area" id="file-upload-area">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p class="upload-text">Drag & drop your audio file here</p>
+                            <p class="upload-subtext">or click to browse</p>
+                            <input type="file" id="audio-input" accept="audio/*" hidden>
+                        </div>
+                        <div class="file-info hidden" id="file-info">
+                            <span id="file-name"></span>
+                            <button class="remove-file" id="remove-file">×</button>
+                        </div>
+                        <button class="submit-btn" id="submit-audio" disabled>
+                            <span>Transcribe & Generate</span>
+                            <svg class="spinner hidden" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section hidden" id="results-section">
+                <div class="results-header">
+                    <h2>✨ Your Summary & Slides</h2>
+                    <div class="results-actions">
+                        <button class="action-btn" id="view-slides">📊 View Slides</button>
+                        <button class="action-btn" id="edit-slides">✏️ Edit Slides</button>
+                        <button class="action-btn" id="download-summary">💾 Download Summary</button>
+                        <div class="export-dropdown">
+                            <button class="action-btn export-btn">📥 Export Presentation</button>
+                            <div class="dropdown-menu">
+                                <button class="dropdown-item" id="export-html">📄 Export as HTML</button>
+                                <button class="dropdown-item" id="export-pdf">📑 Export as PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-box" id="summary-box">
+                    <h3>📋 Summary</h3>
+                    <div id="summary-content"></div>
+                </div>
+
+                <div class="slides-preview" id="slides-preview">
+                    <h3>📊 Slide Preview</h3>
+                    <div id="slides-content"></div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div class="error-message hidden" id="error-message"></div>
+        </main>
+
+        <footer>
+            <p>Powered by <strong>Google Gemini 3 Pro</strong> | Built for Hackathon</p>
+        </footer>
+    </div>
+
+    <!-- Slides Modal -->
+    <div class="modal hidden" id="slides-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Presentation Slides</h2>
+                <button class="close-modal" id="close-modal">×</button>
+            </div>
+            <div class="modal-body" id="modal-slides-content"></div>
+            <div class="modal-footer">
+                <button class="nav-btn" id="prev-slide">← Previous</button>
+                <span id="slide-counter">Slide 1 of 1</span>
+                <button class="nav-btn" id="next-slide">Next →</button>
+                <div class="modal-export">
+                    <button class="nav-btn" id="export-html-modal">📄 HTML</button>
+                    <button class="nav-btn" id="export-pdf-modal">📑 PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Slides Modal -->
+    <div class="modal hidden" id="edit-modal">
+        <div class="modal-content edit-modal-content">
+            <div class="modal-header">
+                <h2>Edit Presentation</h2>
+                <button class="close-modal" id="close-edit-modal">×</button>
+            </div>
+            <div class="modal-body" id="edit-slides-content"></div>
+            <div class="modal-footer">
+                <button class="nav-btn" id="cancel-edit">Cancel</button>
+                <button class="nav-btn save-btn" id="save-edits">💾 Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

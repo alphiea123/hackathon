@@ -185,43 +185,42 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`;
     throw new Error(`Hugging Face API error: ${errorText}`);
   }
 
-  const data = await hfResponse.json();
+  const hfData = await hfResponse.json();
   
-  let text = '';
-  if (Array.isArray(data) && data[0] && data[0].generated_text) {
-    text = data[0].generated_text;
-  } else if (data.generated_text) {
-    text = data.generated_text;
-  } else if (typeof data === 'string') {
-    text = data;
+  let hfText = '';
+  if (Array.isArray(hfData) && hfData[0] && hfData[0].generated_text) {
+    hfText = hfData[0].generated_text;
+  } else if (hfData.generated_text) {
+    hfText = hfData.generated_text;
+  } else if (typeof hfData === 'string') {
+    hfText = hfData;
   } else {
     throw new Error('Unexpected response format from Hugging Face');
   }
   
-  let jsonText = text.trim();
-  if (jsonText.startsWith('```json')) {
-    jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  } else if (jsonText.startsWith('```')) {
-    jsonText = jsonText.replace(/```\n?/g, '');
+  let hfJsonText = hfText.trim();
+  if (hfJsonText.startsWith('```json')) {
+    hfJsonText = hfJsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  } else if (hfJsonText.startsWith('```')) {
+    hfJsonText = hfJsonText.replace(/```\n?/g, '');
   }
   
-  const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+  const jsonMatch = hfJsonText.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
-    jsonText = jsonMatch[0];
+    hfJsonText = jsonMatch[0];
   }
   
-  const parsed = JSON.parse(jsonText);
+  const hfParsed = JSON.parse(hfJsonText);
   
-  if (!parsed.summary || !parsed.slides || !Array.isArray(parsed.slides)) {
+  if (!hfParsed.summary || !hfParsed.slides || !Array.isArray(hfParsed.slides)) {
     throw new Error('Invalid response format from Hugging Face');
   }
   
-  return parsed;
+  return hfParsed;
 }
 
 // Generate with Google Gemini
 async function generateWithGoogle(transcript, apiKey) {
-  // Use fetch to call Gemini API directly (Cloudflare-compatible)
   const apiResponse = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
     {
@@ -262,32 +261,32 @@ Respond ONLY with valid JSON, no additional text or markdown formatting.`
   );
 
   if (!apiResponse.ok) {
-    const error = await apiResponse.text();
-    throw new Error(`Gemini API error: ${error}`);
+    const apiError = await apiResponse.text();
+    throw new Error(`Gemini API error: ${apiError}`);
   }
 
-  const data = await apiResponse.json();
+  const geminiData = await apiResponse.json();
   
-  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+  if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content) {
     throw new Error('Invalid response from Gemini API');
   }
   
-  const text = data.candidates[0].content.parts[0].text;
+  const geminiText = geminiData.candidates[0].content.parts[0].text;
   
-  let jsonText = text.trim();
-  if (jsonText.startsWith('```json')) {
-    jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  } else if (jsonText.startsWith('```')) {
-    jsonText = jsonText.replace(/```\n?/g, '');
+  let geminiJsonText = geminiText.trim();
+  if (geminiJsonText.startsWith('```json')) {
+    geminiJsonText = geminiJsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+  } else if (geminiJsonText.startsWith('```')) {
+    geminiJsonText = geminiJsonText.replace(/```\n?/g, '');
   }
   
-  const parsed = JSON.parse(jsonText);
+  const geminiParsed = JSON.parse(geminiJsonText);
   
-  if (!parsed.summary || !parsed.slides || !Array.isArray(parsed.slides)) {
+  if (!geminiParsed.summary || !geminiParsed.slides || !Array.isArray(geminiParsed.slides)) {
     throw new Error('Invalid response format from Gemini');
   }
   
-  return parsed;
+  return geminiParsed;
 }
 
 // Transcribe with Hugging Face
@@ -311,21 +310,21 @@ async function transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, mod
       await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
       return transcribeWithHuggingFace(audioArrayBuffer, mimeType, apiKey, modelOverride);
     }
-    const errorText = await transcribeResponse.text();
-    throw new Error(`Hugging Face API error: ${errorText}`);
+    const transcribeError = await transcribeResponse.text();
+    throw new Error(`Hugging Face API error: ${transcribeError}`);
   }
 
-  const data = await transcribeResponse.json();
+  const transcribeData = await transcribeResponse.json();
   
-  if (typeof data === 'string') {
-    return data;
-  } else if (data.text) {
-    return data.text;
-  } else if (Array.isArray(data) && data[0] && data[0].text) {
-    return data[0].text;
-  } else if (data.chunks && Array.isArray(data.chunks)) {
-    return data.chunks.map(chunk => chunk.text || chunk).join(' ');
+  if (typeof transcribeData === 'string') {
+    return transcribeData;
+  } else if (transcribeData.text) {
+    return transcribeData.text;
+  } else if (Array.isArray(transcribeData) && transcribeData[0] && transcribeData[0].text) {
+    return transcribeData[0].text;
+  } else if (transcribeData.chunks && Array.isArray(transcribeData.chunks)) {
+    return transcribeData.chunks.map(chunk => chunk.text || chunk).join(' ');
   } else {
-    throw new Error('Unexpected response format from Hugging Face: ' + JSON.stringify(data));
+    throw new Error('Unexpected response format from Hugging Face: ' + JSON.stringify(transcribeData));
   }
 }
